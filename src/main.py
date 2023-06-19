@@ -30,6 +30,7 @@ currentTurn = -1
 configFolder='settings'
 configFile='settings/config.ini'
 savesFolder='saves'
+outputFolder='output'
 framerate = 60
 
 base_screen_width = 1100
@@ -45,6 +46,8 @@ if not os.path.exists(configFolder):
     os.makedirs(configFolder)
 if not os.path.exists(savesFolder):
     os.makedirs(savesFolder)
+if not os.path.exists(outputFolder):
+    os.makedirs(outputFolder)
 
     
 # Check if the config file exisits and if it doesn't one is created
@@ -181,6 +184,7 @@ class MenuScene(Scene):
                 if width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2-80*scale_factor_y <= mouse[1] <= height/2-40*scale_factor_y:
                     # Play Button
                     #self.game.change_scene(GameScene(self.game))
+                    # Add a car to the files
                     pass
                 elif width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2+40*scale_factor_y <= mouse[1] <= height/2+80*scale_factor_y:
                     # Exit Button
@@ -194,6 +198,9 @@ class MenuScene(Scene):
                     # Load Save Button
                     # choose a file from explorer to load the number snad current turn from
                     # Prompt the user to select a file
+
+                    # Save a copy of the input file in the output folder
+                    # Warn the user if this will override a file
 
                     current = os.getcwd()
                     file_path = filedialog.askopenfilename(initialdir=current + '/saves')
@@ -278,9 +285,7 @@ class MenuScene(Scene):
         scale_factor_x = self.game.screen.get_width() / base_screen_width
         scale_factor_y = self.game.screen.get_height() / base_screen_height
 
-        # Sets the font size based on the scale factors 
-        self.font = pygame.font.SysFont('Verdana',int(35*(scale_factor_x+scale_factor_y)/2))
-
+    
         # Background Colour
         self.game.screen.fill((18,18,18))
 
@@ -326,20 +331,29 @@ class MenuScene(Scene):
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW) 
 
+
+        # Sets the font size based on the scale factors 
+        self.font = pygame.font.SysFont('Verdana',int(35*(scale_factor_x+scale_factor_y)/2))
+
         # Creates text boxes for the different options and the main manu page title
+        text = self.font.render("Car Adder", True, (255, 255, 255))
+
+        # Sets the font size based on the scale factors 
+        self.font = pygame.font.SysFont('Verdana',int(24*(scale_factor_x+scale_factor_y)/2))
+
+        # Creates text boxes for the different options and the main manu page title
+        addText = self.font.render('ADD CAR', True, (255, 255, 255))
+        removeText = self.font.render('REMOVE CAR', True, (255, 255, 255))
         exitText = self.font.render('EXIT', True, (255, 255, 255))
-        playText = self.font.render('PLAY', True, (255, 255, 255))
-        rulesText = self.font.render('RULES', True, (255, 255, 255))
-        loadSaveText = self.font.render('LOAD', True, (255, 255, 255))
-        saveText = self.font.render('SAVE', True, (255, 255, 255))
-        text = self.font.render("Main Menu", True, (255, 255, 255))
+        loadSaveText = self.font.render('LOAD FILE', True, (255, 255, 255))
+        saveText = self.font.render('RESTORE FILE', True, (255, 255, 255))
 
         # Shows and scales the text boxes based on the scale factors
-        self.game.screen.blit(exitText, (width/2-39*scale_factor_x,height/2+36*scale_factor_y))
-        self.game.screen.blit(playText, (width/2-39*scale_factor_x,height/2-84*scale_factor_y))
-        self.game.screen.blit(rulesText, (width/2-56*scale_factor_x,height/2-23*scale_factor_y))
+        self.game.screen.blit(exitText, (width/2-30*scale_factor_x,height/2+43*scale_factor_y))
+        self.game.screen.blit(addText, (width/2-39*scale_factor_x,height/2-84*scale_factor_y))
+        self.game.screen.blit(removeText, (width/2-56*scale_factor_x,height/2-23*scale_factor_y))
         self.game.screen.blit(text, (10, 10))
-        self.game.screen.blit(loadSaveText, (width-127*scale_factor_x, 17*scale_factor_y))
+        self.game.screen.blit(loadSaveText, (width-141*scale_factor_x, 22*scale_factor_y))
         self.game.screen.blit(saveText, (width-127*scale_factor_x, 77*scale_factor_y))
 
 

@@ -1,2 +1,6 @@
 entry_list.ini
 server_cfg.ini
+saves
+settings
+src/__pycache__
+output

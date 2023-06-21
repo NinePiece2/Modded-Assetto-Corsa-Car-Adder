@@ -346,6 +346,7 @@ class MenuScene(Scene):
         removeText = self.font.render('REMOVE CAR', True, (255, 255, 255))
         exitText = self.font.render('EXIT', True, (255, 255, 255))
         loadSaveText = self.font.render('LOAD FILE', True, (255, 255, 255))
+        loadSaveCfgText = self.font.render('LOAD CFG FILE', True, (255, 255, 255))
         saveText = self.font.render('RESTORE FILE', True, (255, 255, 255))
 
         # Shows and scales the text boxes based on the scale factors

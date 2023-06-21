@@ -9,7 +9,7 @@ if sys.platform == 'win32':
         pass
 
 # Imports modules from the util.py class
-from util import add_car_to_entry, add_car_to_cfg
+from util import *
 
 import pygame
 import random
@@ -22,6 +22,7 @@ import os
 from sys import exit
 from PIL import Image
 import webbrowser
+import shutil
 
 # Global Variable Declorations
 numbers = []
@@ -48,8 +49,6 @@ screen1 = pygame.display.set_mode((1100*scale_factor_x, 600*scale_factor_y), pyg
 # Check if the settings and saves folder exists, if it doesn't make the folders
 if not os.path.exists(configFolder):
     os.makedirs(configFolder)
-if not os.path.exists(savesFolder):
-    os.makedirs(savesFolder)
 if not os.path.exists(outputFolder):
     os.makedirs(outputFolder)
 if not os.path.exists(backupFolder):
@@ -189,16 +188,7 @@ class MenuScene(Scene):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2-80*scale_factor_y <= mouse[1] <= height/2-40*scale_factor_y:
                     # Add Button
-                    #self.game.change_scene(GameScene(self.game))
                     # Add a car to the files
-                    #pass
-                    # Tk().wm_withdraw()
-                    # model = tk.simpledialog.askstring("Car Details", "Enter the car model:")
-                    # skin = tk.simpledialog.askstring("Car Details", "Enter the car skin:")
-
-                    # if model and skin:
-                    #     # Do something with the car details
-                    #     messagebox.showinfo("Car Details", f"Model: {model}\nSkin: {skin}")
 
                     def ask_car_details():
                         root = tk.Tk()
@@ -217,19 +207,12 @@ class MenuScene(Scene):
 
                         return model, skin, yes
                     
-                    
-
-
                     model, skin, yes = ask_car_details()
 
                     if model == '' or skin == '' and yes:
                         messagebox.showerror('ERROR','Model or Skin empty - CAR NOT ADDED')
                     elif yes:
                         add_car(model, skin)
-
-
-
-                    # USER_INP = simpledialog.askstring(title="Test",prompt="What's your Name?:")
 
                 elif width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2+40*scale_factor_y <= mouse[1] <= height/2+80*scale_factor_y:
                     # Exit Button
@@ -244,7 +227,7 @@ class MenuScene(Scene):
                     # Warn the user if this will override a file
 
                     current = os.getcwd()
-                    file_path = filedialog.askopenfilename(initialdir=current + '/saves')
+                    file_path = filedialog.askopenfilename(initialdir=current + '/output')
 
                     global entryListFile
 
@@ -253,7 +236,14 @@ class MenuScene(Scene):
                         # Read the encoded data from the file
                         try:
                             with open(file_path, "rb") as file:
-                                entryListFile = file.read()
+                                entryListFile = file_path
+
+                            current_time = datetime.datetime.now()
+                            newName = current_time.strftime("entry_list-%Y-%m-%d_%H-%M-%S") + '.ini'
+
+                            # Save a backup of the file
+                            backup_file_path = os.path.join(backupFolder, newName)
+                            shutil.copyfile(file_path, backup_file_path)
 
                             Tk().wm_withdraw()
                             messagebox.showinfo('Continue', f"Entry List -> {file_path} Loaded")
@@ -269,9 +259,40 @@ class MenuScene(Scene):
                         return
 
                 elif width - 210*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 80*scale_factor_y <= mouse[1] <= 120*scale_factor_y:
-                    pass
-            elif event.type == pygame.USEREVENT:
-                pass  # Handle the custom event to unblock the pygame event queue
+                    # Save a copy of the input file in the output folder
+                    # Warn the user if this will override a file
+
+                    current = os.getcwd()
+                    file_path = filedialog.askopenfilename(initialdir=current + '/output')
+
+                    global serverCfgFile
+
+                    # Check if a file was selected
+                    if file_path:
+                        # Read the encoded data from the file
+                        try:
+                            with open(file_path, "rb") as file:
+                                serverCfgFile = file_path
+
+                            current_time = datetime.datetime.now()
+                            newName = current_time.strftime("server_cfg-%Y-%m-%d_%H-%M-%S") + '.ini'
+
+                            # Save a backup of the file
+                            backup_file_path = os.path.join(backupFolder, newName)
+                            shutil.copyfile(file_path, backup_file_path)
+
+                            Tk().wm_withdraw()
+                            messagebox.showinfo('Continue', f"Entry List -> {file_path} Loaded")
+
+                        except:
+                            print("Wrong File/ Data Corrupted or Tampered with")
+                            Tk().wm_withdraw()
+                            messagebox.showerror('Error', f"Wrong File/ Data Corrupted or Tampered with")
+                            return
+
+                    else:
+                        print("No file selected.")
+                        return
 
 
     # Displays the user interface
@@ -372,7 +393,11 @@ def add_car(model, skin):
         messagebox.showerror('ERROR','No Cfg File Selected - CAR NOT ADDED')
     else:
         add_car_to_entry(model, skin, entryListFile)
-        add_car_to_cfg(model, skin, serverCfgFile)
+        add_car_to_cfg(model, serverCfgFile)
+
+        root = tk.Tk()
+        root.withdraw()  # Hide the root window
+        messagebox.showinfo('Continue', f"Car model:{model} with skin:{skin} added.")
 
         
 

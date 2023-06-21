@@ -120,11 +120,112 @@ def add_car_to_cfg(model, file_path):
     with open(file_path, 'w') as file:
         file.writelines(lines)
 
+def delete_car_entry(model, data_file):
+    # Read the data file
+    with open(data_file, 'r') as file:
+        lines = file.readlines()
+
+    # Find the index of the car with the specified model
+    car_index = -1
+    pattern = fr"MODEL={model}"
+    for i, line in enumerate(lines):
+        if re.search(pattern, line):
+            car_index = i
+            break
+
+    if car_index == -1:
+        print(f"Error: Could not find a car with the model '{model}'.")
+        return
+
+    # Find the start and end indices of the car entry
+    start_index = car_index
+    while start_index > 0 and lines[start_index].strip() != '':
+        start_index -= 1
+
+    end_index = car_index
+    while end_index < len(lines) and lines[end_index].strip() != '':
+        end_index += 1
+
+    # Delete the car entry from the lines list
+    del lines[start_index:end_index]
+
+    # Update the car IDs of the remaining cars after the deletion
+    pattern = r"\[CAR_(\d+)]"
+    for i in range(start_index, len(lines)):
+        match = re.search(pattern, lines[i])
+        if match:
+            old_car_id = int(match.group(1))
+            new_line = re.sub(pattern, f"[CAR_{old_car_id-1}]", lines[i])
+            lines[i] = new_line
+
+    # Write the updated lines back to the file
+    with open(data_file, 'w') as file:
+        file.writelines(lines)
+
+def delete_car_cfg(model, file_path):
+    # Read the file
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    # Find the CARS line
+    cars_index = -1
+    for i, line in enumerate(lines):
+        if line.startswith("CARS="):
+            cars_index = i
+            break
+
+    if cars_index == -1:
+        print("Error: Could not find the CARS line in the file.")
+        return
+
+    cars_line = lines[cars_index].strip()
+    cars = cars_line.split("=")[1].split(";")
+
+    # Check if the car model exists in the list
+    if model not in cars:
+        print("Car model does not exist. No changes made.")
+        return
+
+    # Remove the car model from the list
+    cars.remove(model)
+
+    # Update the CARS line
+    updated_cars_line = "CARS=" + ";".join(cars) + "\n"
+    lines[cars_index] = updated_cars_line
+
+    # Find the MAX_CLIENTS line and decrement the value
+    max_clients_index = -1
+    for i, line in enumerate(lines):
+        if line.startswith("MAX_CLIENTS="):
+            max_clients_index = i
+            break
+
+    if max_clients_index == -1:
+        print("Error: Could not find the MAX_CLIENTS line in the file.")
+        return
+
+    max_clients_line = lines[max_clients_index].strip()
+    max_clients_value = int(max_clients_line.split("=")[1])
+    updated_max_clients_line = f"MAX_CLIENTS={max_clients_value - 1}\n"
+    lines[max_clients_index] = updated_max_clients_line
+
+    # Write the updated lines back to the file
+    with open(file_path, 'w') as file:
+        file.writelines(lines)
+
+    print("Car deleted successfully. MAX_CLIENTS updated.")
+
+
+
 # Usage example
 # file_path = 'entry_list.ini'
 # cfg_file_path = 'server_cfg.ini'
-# model = 'new_car_model'
+ #model = 'new_car_model'
 # skin = 'new_car_skin'
 
 # add_car(model, skin, file_path)
 # add_car_to_cfg(model, cfg_file_path)
+
+# delete_car_entry(model, file_path)
+
+# delete_car_cfg()

@@ -3,4 +3,5 @@ server_cfg.ini
 saves
 settings
 src/__pycache__
+src/test.py
 output

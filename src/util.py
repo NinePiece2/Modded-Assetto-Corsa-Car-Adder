@@ -1,6 +1,6 @@
 import re
 
-def add_car(model, skin, data_file):
+def add_car_to_entry(model, skin, data_file):
     # Read the data file
     with open(data_file, 'r') as file:
         lines = file.readlines()

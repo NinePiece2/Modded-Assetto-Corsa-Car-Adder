@@ -9,14 +9,15 @@ if sys.platform == 'win32':
         pass
 
 # Imports modules from the util.py class
-from util import add_car, add_car_to_cfg
+from util import add_car_to_entry, add_car_to_cfg
 
 import pygame
 import random
 import datetime
 import base64
 import json
-from tkinter import Tk, filedialog, messagebox
+import tkinter as tk
+from tkinter import Tk, filedialog, messagebox, simpledialog, Label, Entry, Button
 import os
 from sys import exit
 from PIL import Image
@@ -26,11 +27,14 @@ import webbrowser
 numbers = []
 board = []
 boardText = []
+entryListFile=[]
+serverCfgFile=[]
 currentTurn = -1
 configFolder='settings'
 configFile='settings/config.ini'
 savesFolder='saves'
 outputFolder='output'
+backupFolder='output/Z_Backup'
 framerate = 60
 
 base_screen_width = 1100
@@ -48,6 +52,8 @@ if not os.path.exists(savesFolder):
     os.makedirs(savesFolder)
 if not os.path.exists(outputFolder):
     os.makedirs(outputFolder)
+if not os.path.exists(backupFolder):
+    os.makedirs(backupFolder)
 
     
 # Check if the config file exisits and if it doesn't one is created
@@ -182,50 +188,75 @@ class MenuScene(Scene):
             # Handles when the mouse selects screen elements
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2-80*scale_factor_y <= mouse[1] <= height/2-40*scale_factor_y:
-                    # Play Button
+                    # Add Button
                     #self.game.change_scene(GameScene(self.game))
                     # Add a car to the files
-                    pass
+                    #pass
+                    # Tk().wm_withdraw()
+                    # model = tk.simpledialog.askstring("Car Details", "Enter the car model:")
+                    # skin = tk.simpledialog.askstring("Car Details", "Enter the car skin:")
+
+                    # if model and skin:
+                    #     # Do something with the car details
+                    #     messagebox.showinfo("Car Details", f"Model: {model}\nSkin: {skin}")
+
+                    def ask_car_details():
+                        root = tk.Tk()
+                        root.withdraw()  # Hide the root window
+
+                        model = tk.simpledialog.askstring("Car Details", "Enter car model:")
+                        if model is None:
+                            return None  # User closed the dialog
+
+                        skin = tk.simpledialog.askstring("Car Details", "Enter car skin:")
+                        if skin is None:
+                            return None  # User closed the dialog
+                        
+                        yes = tk.messagebox.askyesnocancel('Add Car', f'Do you want to add the car {model} with the ' +
+                                                           f'skin {skin}')
+
+                        return model, skin, yes
+                    
+                    
+
+
+                    model, skin, yes = ask_car_details()
+
+                    if model == '' or skin == '' and yes:
+                        messagebox.showerror('ERROR','Model or Skin empty - CAR NOT ADDED')
+                    elif yes:
+                        add_car(model, skin)
+
+
+
+                    # USER_INP = simpledialog.askstring(title="Test",prompt="What's your Name?:")
+
                 elif width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2+40*scale_factor_y <= mouse[1] <= height/2+80*scale_factor_y:
                     # Exit Button
                     pygame.quit()
                     exit()
                 elif width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2-20*scale_factor_y <= mouse[1] <= height/2+20*scale_factor_y:
-                    # Rules Buton 
+                    # Remove Buton 
                     #self.game.change_scene(RulesScene(self.game))
                     pass
-                elif width - 150*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 20*scale_factor_y <= mouse[1] <= 60*scale_factor_y:
-                    # Load Save Button
-                    # choose a file from explorer to load the number snad current turn from
-                    # Prompt the user to select a file
-
+                elif width - 210*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 20*scale_factor_y <= mouse[1] <= 60*scale_factor_y:
                     # Save a copy of the input file in the output folder
                     # Warn the user if this will override a file
 
                     current = os.getcwd()
                     file_path = filedialog.askopenfilename(initialdir=current + '/saves')
 
+                    global entryListFile
+
                     # Check if a file was selected
                     if file_path:
                         # Read the encoded data from the file
                         try:
                             with open(file_path, "rb") as file:
-                                encoded_data = file.read()
-
-                            # Decode the base64-encoded data
-                            decoded_data = base64.b64decode(encoded_data)
-
-                            # Decode the data from JSON
-                            json_data = decoded_data.decode("utf-8")
-                            data = json.loads(json_data)
-
-                            # Extract the numbers and currentTurn from the data
-                            global numbers, currentTurn
-                            numbers = data["numbers"]
-                            currentTurn = data["currentTurn"]
+                                entryListFile = file.read()
 
                             Tk().wm_withdraw()
-                            messagebox.showinfo('Continue', f"Save {file_path} Loaded")
+                            messagebox.showinfo('Continue', f"Entry List -> {file_path} Loaded")
 
                         except:
                             print("Wrong File/ Data Corrupted or Tampered with")
@@ -237,38 +268,11 @@ class MenuScene(Scene):
                         print("No file selected.")
                         return
 
-                elif width - 150*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 80*scale_factor_y <= mouse[1] <= 120*scale_factor_y:
-                    # Save Button
+                elif width - 210*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 80*scale_factor_y <= mouse[1] <= 120*scale_factor_y:
+                    pass
+            elif event.type == pygame.USEREVENT:
+                pass  # Handle the custom event to unblock the pygame event queue
 
-                    if not os.path.exists(savesFolder):
-                        os.makedirs(savesFolder)
-                    
-                    # Generate a unique filename using the current date and time
-                    now = datetime.datetime.now()
-                    current_time = datetime.datetime.now()
-                    filename = current_time.strftime("Bingo-Save-%Y-%m-%d_%H-%M-%S") + ".txt"
-                    file_path = os.path.join(savesFolder, filename)
-
-                    # Prepare the data to be saved
-                    data = {
-                        "numbers": numbers,
-                        "currentTurn": currentTurn
-                    }
-
-                    # Encode the data as JSON and convert it to bytes
-                    json_data = json.dumps(data).encode("utf-8")
-
-                    # Encode the bytes using base64
-                    encoded_data = base64.b64encode(json_data)
-
-                    # Write the encoded data to the file
-                    with open(file_path, "wb") as file:
-                        file.write(encoded_data)
-
-                    print(f"Data saved to {filename}")
-
-                    Tk().wm_withdraw()
-                    messagebox.showinfo('Continue', f"New Save Made: {filename}")
 
     # Displays the user interface
     def draw(self):
@@ -290,7 +294,7 @@ class MenuScene(Scene):
         self.game.screen.fill((18,18,18))
 
         # Checks if the user is hovering the menu options  
-        # Rules Menu
+        # Delete Menu
         if width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2-20*scale_factor_y <= mouse[1] <= height/2+20*scale_factor_y:
             pygame.draw.rect(self.game.screen,color_light,[width/2-70*scale_factor_x,height/2-20*scale_factor_y,140*scale_factor_x,40*scale_factor_y])  
             hover = True         
@@ -304,26 +308,26 @@ class MenuScene(Scene):
         else:
             pygame.draw.rect(self.game.screen,color_dark,[width/2-70*scale_factor_x,height/2-80*scale_factor_y,140*scale_factor_x,40*scale_factor_y])
 
-        # Game Button / Menu
+        # Add Menu
         if width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2+40*scale_factor_y <= mouse[1] <= height/2+80*scale_factor_y:
             pygame.draw.rect(self.game.screen,color_light,[width/2-70*scale_factor_x,height/2+40*scale_factor_y,140*scale_factor_x,40*scale_factor_y])
             hover = True
         else: 
             pygame.draw.rect(self.game.screen,color_dark,[width/2-70*scale_factor_x,height/2+40*scale_factor_y,140*scale_factor_x,40*scale_factor_y])
 
-        # Load Save Button
-        if width - 150*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 20*scale_factor_y <= mouse[1] <= 60*scale_factor_y:
-            pygame.draw.rect(self.game.screen,color_light,[width - 150*scale_factor_x,20*scale_factor_y,140*scale_factor_x,40*scale_factor_y])
+        # Load Entry Button
+        if width - 210*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 20*scale_factor_y <= mouse[1] <= 60*scale_factor_y:
+            pygame.draw.rect(self.game.screen,color_light,[width - 210*scale_factor_x,20*scale_factor_y,200*scale_factor_x,40*scale_factor_y])
             hover = True
         else: 
-            pygame.draw.rect(self.game.screen,color_dark,[width - 150*scale_factor_x,20*scale_factor_y,140*scale_factor_x,40*scale_factor_y])
+            pygame.draw.rect(self.game.screen,color_dark,[width - 210*scale_factor_x,20*scale_factor_y,200*scale_factor_x,40*scale_factor_y])
 
-        # Save Button
-        if width - 150*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 80*scale_factor_y <= mouse[1] <= 120*scale_factor_y:
-            pygame.draw.rect(self.game.screen,color_light,[width - 150*scale_factor_x,80*scale_factor_y,140*scale_factor_x,40*scale_factor_y])
+        # Save Cfg Button
+        if width - 210*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 80*scale_factor_y <= mouse[1] <= 120*scale_factor_y:
+            pygame.draw.rect(self.game.screen,color_light,[width - 210*scale_factor_x,80*scale_factor_y,200*scale_factor_x,40*scale_factor_y])
             hover = True
         else: 
-            pygame.draw.rect(self.game.screen,color_dark,[width - 150*scale_factor_x,80*scale_factor_y,140*scale_factor_x,40*scale_factor_y])
+            pygame.draw.rect(self.game.screen,color_dark,[width - 210*scale_factor_x,80*scale_factor_y,200*scale_factor_x,40*scale_factor_y])
         
         # Changes the cursor wheather or not the user is hovering an option to select
         if hover:
@@ -342,21 +346,35 @@ class MenuScene(Scene):
         self.font = pygame.font.SysFont('Verdana',int(24*(scale_factor_x+scale_factor_y)/2))
 
         # Creates text boxes for the different options and the main manu page title
-        addText = self.font.render('ADD CAR', True, (255, 255, 255))
-        removeText = self.font.render('REMOVE CAR', True, (255, 255, 255))
+        addText = self.font.render('ADD', True, (255, 255, 255))
+        removeText = self.font.render('REMOVE', True, (255, 255, 255))
         exitText = self.font.render('EXIT', True, (255, 255, 255))
-        loadSaveText = self.font.render('LOAD FILE', True, (255, 255, 255))
-        loadSaveCfgText = self.font.render('LOAD CFG FILE', True, (255, 255, 255))
-        saveText = self.font.render('RESTORE FILE', True, (255, 255, 255))
+        loadEntryText = self.font.render('LOAD ENTRY', True, (255, 255, 255))
+        loadCfgText = self.font.render('LOAD CFG', True, (255, 255, 255))
 
         # Shows and scales the text boxes based on the scale factors
         self.game.screen.blit(exitText, (width/2-30*scale_factor_x,height/2+43*scale_factor_y))
-        self.game.screen.blit(addText, (width/2-39*scale_factor_x,height/2-84*scale_factor_y))
-        self.game.screen.blit(removeText, (width/2-56*scale_factor_x,height/2-23*scale_factor_y))
+        self.game.screen.blit(addText, (width/2-28*scale_factor_x,height/2-76*scale_factor_y))
+        self.game.screen.blit(removeText, (width/2-52*scale_factor_x,height/2-15*scale_factor_y))
         self.game.screen.blit(text, (10, 10))
-        self.game.screen.blit(loadSaveText, (width-141*scale_factor_x, 22*scale_factor_y))
-        self.game.screen.blit(saveText, (width-127*scale_factor_x, 77*scale_factor_y))
+        self.game.screen.blit(loadEntryText, (width-185*scale_factor_x, 24*scale_factor_y))
+        self.game.screen.blit(loadCfgText, (width-170*scale_factor_x, 83*scale_factor_y))
 
+
+def add_car(model, skin):
+    if entryListFile == []:
+        root = tk.Tk()
+        root.withdraw()  # Hide the root window
+        messagebox.showerror('ERROR','No Entry List File Selected - CAR NOT ADDED')
+    elif serverCfgFile ==[]:
+        root = tk.Tk()
+        root.withdraw()  # Hide the root window
+        messagebox.showerror('ERROR','No Cfg File Selected - CAR NOT ADDED')
+    else:
+        add_car_to_entry(model, skin, entryListFile)
+        add_car_to_cfg(model, skin, serverCfgFile)
+
+        
 
 # Function that starts the application
 if __name__ == "__main__":

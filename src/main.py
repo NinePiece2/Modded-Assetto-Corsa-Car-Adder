@@ -219,9 +219,28 @@ class MenuScene(Scene):
                     pygame.quit()
                     exit()
                 elif width/2-70*scale_factor_x <= mouse[0] <= width/2+70*scale_factor_x and height/2-20*scale_factor_y <= mouse[1] <= height/2+20*scale_factor_y:
-                    # Remove Buton 
-                    #self.game.change_scene(RulesScene(self.game))
-                    pass
+                    # Remove Button
+                    # Remove a car to the files
+
+                    def ask_car_details():
+                        root = tk.Tk()
+                        root.withdraw()  # Hide the root window
+
+                        model = tk.simpledialog.askstring("Car Details", "Enter car model:")
+                        if model is None:
+                            return None  # User closed the dialog
+                        
+                        yes = tk.messagebox.askyesnocancel('Remove Car', f'Do you want to remove the car {model}.')
+
+                        return model, yes
+                    
+                    model, yes = ask_car_details()
+
+                    if model == '' and yes:
+                        messagebox.showerror('ERROR','Model Empty - CAR NOT REMOVED')
+                    elif yes:
+                        remove_car(model)
+
                 elif width - 210*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 20*scale_factor_y <= mouse[1] <= 60*scale_factor_y:
                     # Save a copy of the input file in the output folder
                     # Warn the user if this will override a file
@@ -282,7 +301,7 @@ class MenuScene(Scene):
                             shutil.copyfile(file_path, backup_file_path)
 
                             Tk().wm_withdraw()
-                            messagebox.showinfo('Continue', f"Entry List -> {file_path} Loaded")
+                            messagebox.showinfo('Continue', f"Server Cfg -> {file_path} Loaded")
 
                         except:
                             print("Wrong File/ Data Corrupted or Tampered with")
@@ -343,7 +362,7 @@ class MenuScene(Scene):
         else: 
             pygame.draw.rect(self.game.screen,color_dark,[width - 210*scale_factor_x,20*scale_factor_y,200*scale_factor_x,40*scale_factor_y])
 
-        # Save Cfg Button
+        # Load Cfg Button
         if width - 210*scale_factor_x <= mouse[0] <= width - 10*scale_factor_x and 80*scale_factor_y <= mouse[1] <= 120*scale_factor_y:
             pygame.draw.rect(self.game.screen,color_light,[width - 210*scale_factor_x,80*scale_factor_y,200*scale_factor_x,40*scale_factor_y])
             hover = True
@@ -398,6 +417,23 @@ def add_car(model, skin):
         root = tk.Tk()
         root.withdraw()  # Hide the root window
         messagebox.showinfo('Continue', f"Car model:{model} with skin:{skin} added.")
+
+def remove_car(model):
+    if entryListFile == []:
+        root = tk.Tk()
+        root.withdraw()  # Hide the root window
+        messagebox.showerror('ERROR','No Entry List File Selected - CAR NOT REMOVE')
+    elif serverCfgFile ==[]:
+        root = tk.Tk()
+        root.withdraw()  # Hide the root window
+        messagebox.showerror('ERROR','No Cfg File Selected - CAR NOT REMOVE')
+    else:
+        delete_car_entry(model, entryListFile)
+        delete_car_cfg(model, serverCfgFile)
+
+        root = tk.Tk()
+        root.withdraw()  # Hide the root window
+        messagebox.showinfo('Continue', f"Car model:{model} removed.")
 
         
 

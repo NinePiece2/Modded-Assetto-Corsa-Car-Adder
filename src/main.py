@@ -12,16 +12,11 @@ if sys.platform == 'win32':
 from util import *
 
 import pygame
-import random
 import datetime
-import base64
-import json
 import tkinter as tk
-from tkinter import Tk, filedialog, messagebox, simpledialog, Label, Entry, Button
+from tkinter import Tk, filedialog, messagebox
 import os
 from sys import exit
-from PIL import Image
-import webbrowser
 import shutil
 
 # Global Variable Declorations

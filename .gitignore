@@ -5,3 +5,5 @@ settings
 src/__pycache__
 src/test.py
 output
+src/build
+src/dist

@@ -20,12 +20,9 @@ from sys import exit
 import shutil
 
 # Global Variable Declorations
-numbers = []
-board = []
-boardText = []
+
 entryListFile=[]
 serverCfgFile=[]
-currentTurn = -1
 configFolder='settings'
 configFile='settings/config.ini'
 savesFolder='saves'
@@ -106,9 +103,9 @@ class Game:
 
         # Setting the name and logo of the window
         pygame.display.set_caption('Car Adder')
-        #image = Image.open('resources/bingo_icon.png')
+        #image = Image.open('resources/icon.png')
         #Icon = pygame.image.fromstring(image.tobytes(), image.size, image.mode)
-        #Icon = pygame.image.load('resources/bingo_icon.png')
+        #Icon = pygame.image.load('resources/icon.png')
         #pygame.display.set_icon(Icon)
         self.clock = pygame.time.Clock()
         self.current_scene = None
@@ -202,7 +199,12 @@ class MenuScene(Scene):
 
                         return model, skin, yes
                     
-                    model, skin, yes = ask_car_details()
+                    # Catch if the operation is canceled
+                    try:
+                        model, skin, yes = ask_car_details()
+                    except:
+                        model = ''
+                        skin = ''
 
                     if model == '' or skin == '' and yes:
                         messagebox.showerror('ERROR','Model or Skin empty - CAR NOT ADDED')
@@ -229,7 +231,11 @@ class MenuScene(Scene):
 
                         return model, yes
                     
-                    model, yes = ask_car_details()
+                    # Catch if the operation is canceled
+                    try:
+                        model, yes = ask_car_details()
+                    except:
+                        model = ''
 
                     if model == '' and yes:
                         messagebox.showerror('ERROR','Model Empty - CAR NOT REMOVED')
